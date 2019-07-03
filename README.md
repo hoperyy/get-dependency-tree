@@ -104,13 +104,13 @@ getDependencyTree({
 
         // not required
         // default: (absoluteFilePath) => {}
-        // It's a callback when filtered in dependency is found (These dependencies are not in the result).
+        // It's a callback when filtered in dependency is found (These dependencies are in the result).
     onFilteredInDepFound: Function,
 
         // not required
         // default: (absoluteFilePath) => {}
-        // It's a callback when filtered out dependency is found (These dependencies are in the result).
-    onFilteredInDepFound: Function,
+        // It's a callback when filtered out dependency is found (These dependencies are not in the result).
+    onFilteredOutDepFound: Function,
 });
 ```
 
