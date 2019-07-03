@@ -21,16 +21,11 @@
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/plugin-transform-typescript": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
-    "@babel/preset-typescript": "^7.3.3",
     "@babel/traverse": "^7.4.5",
-    "babel": "^6.23.0",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
     "css-tree": "^1.0.0-alpha.29",
     "is-relative": "^1.0.0",
     "less": "^2.7.3",
     "sass": "^1.22.2",
-    "scss-parser": "^1.0.3",
     "vue-template-compiler": "^2.6.10"
   }
 }
