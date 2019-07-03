@@ -40,8 +40,8 @@ const utils = {
 
     // callbacks
     onEveryDepFound(absoluteFilePath) {},
-    onFilteredInDepFound(absoluteFilePath) { },
-    onFilteredOutDepFound(absoluteFilePath) { },
+    onFilteredInDepFound(absoluteFilePath) {},
+    onFilteredOutDepFound(absoluteFilePath) {},
 
     // node_modules tag
     nodeModulesFileMap: {},
