@@ -134,7 +134,7 @@ require('get-dependency-tree')({
     +   default
 
         ```js
-        function filterOut(dependencyFilePath, { isNodeModules, exists }) {
+        function filterOut({ depFilePath, isNodeModules, exists }) {
             if (isNodeModules) {
                 // This dependency is in node_modules
                 // This dependency will not be in the result

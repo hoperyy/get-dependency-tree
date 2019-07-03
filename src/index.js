@@ -26,7 +26,7 @@ const utils = {
     },
     
     // filter
-    filterOut(filePath, { isNodeModules, exists }) {
+    filterOut({ depFilePath, isNodeModules, exists }) {
         if (isNodeModules) {
             return true;
         }
@@ -135,7 +135,8 @@ const utils = {
         this.onEveryDepFound && this.onEveryDepFound(absoluteOriginPath);
 
         // if won't show node_modules dep, return
-        const filteredOut = this.filterOut(absoluteOriginPath, { 
+        const filteredOut = this.filterOut({ 
+            depFilePath: absoluteOriginPath,
             exists: fs.existsSync(absoluteOriginPath) && fs.statSync(absoluteOriginPath).isFile(),
             isNodeModules: this.nodeModulesFileMap[absoluteOriginPath]
         });
