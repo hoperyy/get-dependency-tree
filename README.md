@@ -46,74 +46,124 @@ logs:
 
 ## Params
 
-```
-getDependencyTree({
-        // required
-        // should be an absolute path
-        // entry file type supported for now: '.js' / '.vue' / '.css' / '.less' / '.sass' / '.scss'
-    entry: String,
-    
-        // not requried
-        // should be an absolute path
-        // It's the final root folder when finding dependencies.
-    searchRoot: String,
-    
-        // not required
-        // default: ['.js', '.vue', '.less', '.scss']
-        // like webpack project: `require('a')` --> require('a.js')
-    extentions: Array,
-    
-        // not required
-        // default: [ '@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript' ]
-        // `get-dependency-tree` needs babel for compiling.
-        // when you set it, it will override default value.
-    babelPlugins: Array,
-    
-        // not required
-        // default: null
-        // like webpack resolve.alias
-        // for example: alias: { '@test': 'haha' } --> require('@test/a') --> require('haha/a') --> get dep: 'haha/a'
-    alias: Object,
-
-        // not required
-        // It is a result filter. The dependency will be in the result when it returns true
-        // default:
-            filterOut(dependencyFilePath, { isNodeModules, exists }) {
-                if (isNodeModules) {
-                    // This dependency is in node_modules
-                    // This dependency will not be in the result
-                    return true;
-                }
-        
-                if (!exists) {
-                    // This dependency does not exist
-                    // This dependency will not be in the result
-                    return true;
-                }
-        
-                // This dependency will be in the result
-                return false;
-            },
-        // 
-    filterOut: Function,
-
-        // not required
-        // default: (absoluteFilePath) => {}
-        // It's a callback when every dependency is found.
-    onEveryDepFound: Function,
-
-        // not required
-        // default: (absoluteFilePath) => {}
-        // It's a callback when filtered in dependency is found (These dependencies are in the result).
-    onFilteredInDepFound: Function,
-
-        // not required
-        // default: (absoluteFilePath) => {}
-        // It's a callback when filtered out dependency is found (These dependencies are not in the result).
-    onFilteredOutDepFound: Function,
+```js
+require('get-dependency-tree')({
+    ...
 });
 ```
 
++   `getDependencyTree: String | Required`
+    +   default: `''`
+    +   description
+
+        It should be an absolute path
+        
+        entry file type supported for now: '.js' / '.vue' / '.css' / '.less' / '.sass' / '.scss'
+
++   `searchRoot: String | Not Required`
+    +   default: `''`
+    +   description
+
+        It should be an absolute path.
+        
+        It's the final root folder when finding dependencies.
+        
++   `extentions: Array | Not Required`
+    +   default: `['.js', '.vue', '.less', '.scss']`
+    +   description
+
+        It's like webpack project: `require('a')` --> `require('a.js')`.
+        
++   `babelPlugins: Array | Not Required`
+    +   default
+
+        ```js
+        [
+            '@babel/plugin-syntax-dynamic-import',
+            '@babel/plugin-transform-typescript'
+        ]
+        ```
+        
+    +   description
+
+        `get-dependency-tree` needs babel for compiling.
+        
+        When you set it, it will override default value.
+        
++   `alias: Object | Not Required`
+    +   default: `null`
+    +   description
+
+        It's like webpack config: `resolve.alias`
+        
+        For example: 
+        
+        ```js
+        alias: { '@test': 'haha' }
+        ``` 
+        
+        `require('@test/a') --> require('haha/a') --> get dep: 'haha/a'`
+        
++   `filterOut: Function | Not Required`
+    +   default
+
+        ```js
+        function filterOut(dependencyFilePath, { isNodeModules, exists }) {
+            if (isNodeModules) {
+                // This dependency is in node_modules
+                // This dependency will not be in the result
+                return true;
+            }
+    
+            if (!exists) {
+                // This dependency does not exist
+                // This dependency will not be in the result
+                return true;
+            }
+    
+            // This dependency will be in the result
+            return false;
+        }
+        ```
+        
+    +   description
+
+        It is a result filter.
+        
+        The dependency will be in the result when it returns `true`.
+        
+    +   `onEveryDepFound: Function | Not Required`
+        +   default
+
+            ```js
+            (absoluteFilePath) => {}
+            ```
+            
+        +   description
+
+            It's a callback when every dependency is found.
+    
+    +   `onFilteredInDepFound: Function | Not Required`
+        +   default
+
+            ```js
+            (absoluteFilePath) => {}
+            ```
+            
+        +   description
+
+            It's a callback when filtered in dependency is found (These dependencies are in the result).
+            
+    +   `onFilteredOutDepFound: Function | Not Required`
+        +   default
+
+            ```js
+            (absoluteFilePath) => {}
+            ```
+            
+        +   description
+
+            It's a callback when filtered out dependency is found (These dependencies are not in the result).
 
 ## Return
 
