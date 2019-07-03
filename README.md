@@ -11,9 +11,6 @@ npm i get-dependency-tree
 ```
 
 ```js
-const getDependencyTree = require('get-dependency-tree');
-const path = require('path');
-
 const { tree, arr } = require('get-dependency-tree')({
     entry: require('path').join(__dirname, 'test/src/index.vue'),
 });
