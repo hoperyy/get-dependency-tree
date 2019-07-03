@@ -138,7 +138,7 @@ require('get-dependency-tree')({
             
         +   description
 
-            It's a callback when every dependency is found.
+            It's a callback while every dependency is found.
     
     +   `onFilteredInDepFound: Function | Not Required`
         +   default
@@ -149,7 +149,7 @@ require('get-dependency-tree')({
             
         +   description
 
-            It's a callback when filtered in dependency is found (These dependencies are in the result).
+            It's a callback while `filtered in` dependency is found (These dependencies are in the result).
             
     +   `onFilteredOutDepFound: Function | Not Required`
         +   default
@@ -160,7 +160,7 @@ require('get-dependency-tree')({
             
         +   description
 
-            It's a callback when filtered out dependency is found (These dependencies are not in the result).
+            It's a callback while `filtered out` dependency is found (These dependencies are not in the result).
 
 ## Return
 
