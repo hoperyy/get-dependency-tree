@@ -71,7 +71,7 @@ getDependencyTree({
     
         // not required
         // default: null
-        // like webpack resolve/alias
+        // like webpack resolve.alias
         // for example: alias: { '@test': 'haha' } --> require('@test/a') --> require('haha/a') --> get dep: 'haha/a'
     alias: Object,
 
