@@ -1,6 +1,6 @@
 {
   "name": "get-dependency-tree",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "get dependency tree of one file",
   "keywords": ["dependency", "tree"],
   "main": "src/index.js",

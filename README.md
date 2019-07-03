@@ -93,7 +93,7 @@ require('get-dependency-tree')({
         When you set `extentionProcessor` as `{ '.we': 'vue' }`, `get-dependency-tree` will treat file with `.we` extention as `vue` file for compiling.
         
 +   `extentions: Array | Not Required`
-    +   default: `['.js', '.vue', '.less', '.scss']`
+    +   default: `['.js', '.vue', '.less', '.scss', '.sass', '.css']`
     +   description
 
         It's like webpack project: `require('a')` --> `require('a.js')`.
