@@ -14,18 +14,8 @@ npm i get-dependency-tree
 const getDependencyTree = require('get-dependency-tree');
 const path = require('path');
 
-const { tree, arr } = getDependencyTree({
-    entry: path.join(__dirname, 'test/src/index.vue'),
-    searchRoot: __dirname,
-    filterOut(filePath, { isNodeModules, exists }) {
-        if (isNodeModules) {
-            return true;
-        }
-
-        if (!exists) {
-            return true;
-        }
-    }
+const { tree, arr } = require('get-dependency-tree')({
+    entry: require('path').join(__dirname, 'test/src/index.vue'),
 });
 
 console.log(JSON.stringify(tree, null, '\t'));
