@@ -28,6 +28,7 @@ console.log(arr);
 getDependencyTree({
     // required
     // should be an absolute path
+    // entry file type supported for now: '.js' / '.vue' / '.css' / '.less' / '.sass' / '.scss'
     entry: String,
     
     // not requried
@@ -53,3 +54,15 @@ getDependencyTree({
     alias: Object
 });
 ```
+
+
+## Return
+
+```js
+{ tree, arr }
+```
+
++   `tree` is the dependency tree Object
++   `arr` is also dependencies showed by plain
+
+
