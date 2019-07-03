@@ -48,7 +48,7 @@ logs:
 
 ```js
 require('get-dependency-tree')({
-    ...
+    // ...
 });
 ```
 
