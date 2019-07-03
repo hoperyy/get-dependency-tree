@@ -8,6 +8,8 @@ import('@babel/core');
 
 import 'getDepHahaha'
 
+import './test.we'
+
 import B from '@getDep/hi';
 
 B();

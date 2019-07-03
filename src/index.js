@@ -11,11 +11,19 @@ const isRelative = require('is-relative');
 
 const utils = {
     // interface config
-    extentions: ['.js', '.vue', '.less', '.scss'],
+    extentions: ['.js', '.vue', '.less', '.scss', '.sass', '.css'],
     globalEntry: '',
     searchRoot: '',
     alias: null,
     babelPlugins: [ '@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript' ],
+    extentionProcessor: {
+        '.js': 'js',
+        '.vue': 'vue',
+        '.less': 'less',
+        '.scss': 'sass',
+        '.sass': 'sass',
+        '.css': 'css',
+    },
     
     // filter
     filterOut(filePath, { isNodeModules, exists }) {
@@ -452,18 +460,23 @@ const utils = {
 
         const content = fs.readFileSync(entryFilePath, 'utf8');
         const extname = path.extname(entryFilePath);
+        const type = this.extentionProcessor[extname];
 
-        switch (extname) {
-            case '.js':
+        switch (type) {
+            case 'js':
                 this.traverseJsCode(content, entryFilePath, deps);
                 break;
-            case '.vue':
+            case 'vue':
                 this.traverseVueCode(content, entryFilePath, deps);
                 break;
-            case '.css':
-            case '.less':
-            case '.scss':
-                this.traverseStyleCode(content, entryFilePath, deps, extname.replace('.', ''));
+            case 'css':
+                this.traverseStyleCode(content, entryFilePath, deps, 'css');
+                break;
+            case 'less':
+                this.traverseStyleCode(content, entryFilePath, deps, 'less');
+                break;
+            case 'sass':
+                this.traverseStyleCode(content, entryFilePath, deps, 'sass');
                 break;
             default:
                 console.log(`[get-dependency-tree] file type "${extname}" is not supported for now.`);
@@ -484,6 +497,7 @@ const getDependencyTree = ({
     onEveryDepFound = null,
     onFilteredInDepFound = null,
     onFilteredOutDepFound = null,
+    extentionProcessor = null,
     // babelPresets = null
 }) => {
     // check
@@ -513,6 +527,8 @@ const getDependencyTree = ({
     onFilteredOutDepFound && (utils.onFilteredOutDepFound = onFilteredOutDepFound);
 
     babelPlugins && (utils.babelPlugins = babelPlugins);
+
+    extentionProcessor && (Object.assign(utils.extentionProcessor, extentionProcessor));
 
     alias && (utils.alias = alias);
 

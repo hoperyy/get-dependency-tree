@@ -55,7 +55,7 @@ require('get-dependency-tree')({
 
         It should be an absolute path
         
-        entry file type supported for now: '.js' / '.vue' / '.css' / '.less' / '.sass' / '.scss'
+        entry file with extentions below is supported by default: `.js / .vue / .css / .less / .sass / .scss`.
 
 +   `searchRoot: String | Not Required`
     +   default: `''`
@@ -64,6 +64,33 @@ require('get-dependency-tree')({
         It should be an absolute path.
         
         It's the final root folder when finding dependencies.
+
++   `extentionProcessor: Object | Not Required`
+
+    +   default
+
+        The file with extentions as left key is compiled by compilers as right value.
+
+        4 types of value are supported for now: `js / vue / less / sass / css`.
+
+        ```js
+        {
+            '.js': 'js',
+            '.vue': 'vue',
+            '.less': 'less',
+            '.scss': 'sass',
+            '.sass': 'sass',
+            '.css': 'css',
+        }
+        ```
+
+    +   description
+
+        You can set which compiler(`js / vue / less / sass / css`) should compile the file with a extention.
+
+        For example:
+
+        When you set `extentionProcessor` as `{ '.we': 'vue' }`, `get-dependency-tree` will treat file with `.we` extention as `vue` file for compiling.
         
 +   `extentions: Array | Not Required`
     +   default: `['.js', '.vue', '.less', '.scss']`
