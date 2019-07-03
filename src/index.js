@@ -421,7 +421,12 @@ const utils = {
             return;
         }
 
-        if (lang === 'less' || lang === 'css') {
+        if (lang === 'css') {
+            this.walkCssAst(styleCode, filePath, deps);
+            return;
+        }
+
+        if (lang === 'less') {
             less.render(styleCode, (err, result) => {
                 if (err) {
                     throw Error(`[get-dependency-tree] error in ${lang} rendering: ${JSON.stringify(err)}`);
