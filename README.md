@@ -1,3 +1,5 @@
+# This module is in developing. Not Stable for now
+
 # Introduction
 
 `get-dependency-tree` will help you get `entry` file's dependency tree/arr.
