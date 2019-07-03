@@ -1,7 +1,7 @@
 {
   "name": "get-dependency-tree",
   "version": "1.0.0",
-  "description": "",
+  "description": "get dependency tree of one file",
   "main": "index.js",
   "scripts": {
     "test": "node test/index"
