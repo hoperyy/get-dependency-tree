@@ -158,38 +158,38 @@ require('get-dependency-tree')({
         
         The dependency will be in the result when it returns `true`.
         
-    +   `onEveryDepFound: Function | Not Required`
-        +   default
++   `onEveryDepFound: Function | Not Required`
+    +   default
 
-            ```js
-            (absoluteFilePath) => {}
-            ```
-            
-        +   description
+        ```js
+        (absoluteFilePath) => {}
+        ```
+        
+    +   description
 
-            It will callback while every dependency is found.
-    
-    +   `onFilteredInDepFound: Function | Not Required`
-        +   default
+        It will callback while every dependency is found.
 
-            ```js
-            (absoluteFilePath) => {}
-            ```
-            
-        +   description
++   `onFilteredInDepFound: Function | Not Required`
+    +   default
 
-            It will callback while `filtered in` dependency is found (These dependencies are in the result).
-            
-    +   `onFilteredOutDepFound: Function | Not Required`
-        +   default
+        ```js
+        (absoluteFilePath) => {}
+        ```
+        
+    +   description
 
-            ```js
-            (absoluteFilePath) => {}
-            ```
-            
-        +   description
+        It will callback while `filtered in` dependency is found (These dependencies are in the result).
+        
++   `onFilteredOutDepFound: Function | Not Required`
+    +   default
 
-            It will callback while `filtered out` dependency is found (These dependencies are not in the result).
+        ```js
+        (absoluteFilePath) => {}
+        ```
+        
+    +   description
+
+        It will callback while `filtered out` dependency is found (These dependencies are not in the result).
 
 ## Return
 
