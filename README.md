@@ -171,4 +171,6 @@ require('get-dependency-tree')({
 +   `tree` is the dependency tree Object
 +   `arr` is also dependencies showed by plain
 
+## LICENSE
 
+MIT
