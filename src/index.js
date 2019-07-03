@@ -16,7 +16,7 @@ const utils = {
     searchRoot: '',
     alias: null,
     babelPlugins: [ '@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript' ],
-    extentionProcessor: {
+    extentionCompiler: {
         '.js': 'js',
         '.vue': 'vue',
         '.less': 'less',
@@ -461,7 +461,7 @@ const utils = {
 
         const content = fs.readFileSync(entryFilePath, 'utf8');
         const extname = path.extname(entryFilePath);
-        const type = this.extentionProcessor[extname];
+        const type = this.extentionCompiler[extname];
 
         switch (type) {
             case 'js':
@@ -498,7 +498,7 @@ const getDependencyTree = ({
     onEveryDepFound = null,
     onFilteredInDepFound = null,
     onFilteredOutDepFound = null,
-    extentionProcessor = null,
+    extentionCompiler = null,
     // babelPresets = null
 }) => {
     // check
@@ -529,7 +529,7 @@ const getDependencyTree = ({
 
     babelPlugins && (utils.babelPlugins = babelPlugins);
 
-    extentionProcessor && (Object.assign(utils.extentionProcessor, extentionProcessor));
+    extentionCompiler && (Object.assign(utils.extentionCompiler, extentionCompiler));
 
     alias && (utils.alias = alias);
 

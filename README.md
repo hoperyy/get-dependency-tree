@@ -67,7 +67,7 @@ require('get-dependency-tree')({
         
         It's the final root folder when finding dependencies.
 
-+   `extentionProcessor: Object | Not Required`
++   `extentionCompiler: Object | Not Required`
 
     +   default
 
@@ -92,7 +92,7 @@ require('get-dependency-tree')({
 
         For example:
 
-        When you set `extentionProcessor` as `{ '.we': 'vue' }`, `get-dependency-tree` will treat file with `.we` extention as `vue` file for compiling.
+        When you set `extentionCompiler` as `{ '.we': 'vue' }`, `get-dependency-tree` will treat file with `.we` extention as `vue` file for compiling.
         
 +   `extentions: Array | Not Required`
     +   default: `['.js', '.vue', '.less', '.scss', '.sass', '.css']`
