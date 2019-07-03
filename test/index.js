@@ -8,15 +8,15 @@ const { tree, arr } = getDependencyTree({
     alias: {
       '@getDep': 'getDepTest'  
     },
-    filterOut(filePath, { isNodeModules, exists }) {
-        if (isNodeModules) {
-            return true;
-        }
+    // filterOut(filePath, { isNodeModules, exists }) {
+    //     // if (isNodeModules) {
+    //     //     return true;
+    //     // }
 
-        if (!exists) {
-            return true;
-        }
-    }
+    //     // if (!exists) {
+    //     //     return true;
+    //     // }
+    // }
 });
 
 console.log(JSON.stringify(tree, null, '\t'));

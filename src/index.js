@@ -31,9 +31,9 @@ const utils = {
     },
 
     // callbacks
-    onEveryDepFound: null,
-    onFilteredInDepFound: null,
-    onFilteredOutDepFound: null,
+    onEveryDepFound(absoluteFilePath) {},
+    onFilteredInDepFound(absoluteFilePath) { },
+    onFilteredOutDepFound(absoluteFilePath) { },
 
     // node_modules tag
     nodeModulesFileMap: {},
