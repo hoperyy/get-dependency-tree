@@ -415,14 +415,33 @@ const utils = {
     walkCssAst(css, filePath, deps) {
         const ast = csstree.parse(css);
 
+        // remove: '  "
+        const removeQuotationMarks = value => value.replace(/^\'/g, '').replace(/\'$/g, '').replace(/^\"/g, '').replace(/\"$/g, '');
+
         const urls = [];
         csstree.walk(ast, (node) => {
-            if (this.declaration !== null && node.type === 'Url') {
-
-                let value = node.value.value;
-                value = value.replace(/^\'/g, '').replace(/\'$/g, '').replace(/^\"/g, '').replace(/\"$/g, '');
-
+            // .foo { background: url(README.md); }
+            // .bar { background-image: url(../ bar.png); }
+            // @import url('import2.css');
+            if (node.type === 'Url') {
+                const value = removeQuotationMarks(node.value.value);
                 urls.push(value);
+            }
+
+            // @import 'import.css';
+            // @import (css) "filename";
+            // @example '1' 2;
+            if (node.type === 'Atrule') {
+                try {
+                    const value = removeQuotationMarks(node.prelude.children.head.data.value);
+
+                    // delete 
+                    // @import (css) "filename";
+                    // @example '1' 2;
+                    if (this.autoCompleteExtentions.indexOf(path.extname(value)) !== -1) {
+                        urls.push(value);
+                    }
+                } catch(err) {}
             }
         });
 
@@ -458,12 +477,11 @@ const utils = {
             return;
         }
 
-        if (lang === 'css') {
-            this.walkCssAst(styleCode, filePath, deps);
-            return;
-        }
-
-        if (lang === 'less') {
+        // less.render can remove comment
+        if (lang === 'less' || lang === 'css') {
+            // @import (css) "filename"; --> @import "filename";
+            // @import url('import.css'); --> @import url('import.css');
+            // @import 'import.css'; --> @import 'import.css';
             less.render(styleCode, (err, result) => {
                 if (err) {
                     throw Error(`[get-dependency-tree] error in ${lang} rendering: ${JSON.stringify(err)}`);
