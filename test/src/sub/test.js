@@ -1,5 +1,5 @@
 import bars from './bar'
-import bars1 from './bar.1.js'
+import bars1 from './bar.1'
 
 bars();
 

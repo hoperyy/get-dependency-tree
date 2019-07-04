@@ -3,7 +3,7 @@ const zepto = require('zepto');
 
 import _ from 'lodash';
 import bar from './sub/bar';
-import bar1 from './sub/bar.1.js';
+import bar1 from './sub/bar.1';
 
 bar1();
 

@@ -67,7 +67,7 @@ const utils = {
         const autoCompleteExtentions = this.autoCompleteExtentions;
         const extname = path.extname(filePath);
 
-        if (extname) {
+        if (extname && autoCompleteExtentions.indexOf(extname) !== -1) {
             return filePath;
         }
 
