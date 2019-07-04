@@ -11,18 +11,31 @@ const isRelative = require('is-relative');
 
 const utils = {
     // interface config
-    extentions: ['.js', '.vue', '.less', '.scss', '.sass', '.css'],
+    autoCompleteExtentions: ['.js', '.vue', '.less', '.scss', '.sass', '.css'],
     globalEntry: '',
     searchRoot: '',
     alias: null,
-    babelPlugins: [ '@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript' ],
-    extentionCompiler: {
+    setFileCompiler: {
         '.js': 'js',
         '.vue': 'vue',
         '.less': 'less',
         '.scss': 'sass',
         '.sass': 'sass',
         '.css': 'css',
+    },
+    compilerSettings: {
+        'js': {
+            babelPlugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript']
+        },
+        'less': {
+
+        },
+        'sass': {
+
+        },
+        'css': {
+
+        }
     },
     
     // filter
@@ -51,15 +64,15 @@ const utils = {
     babelPresets: ['@babel/preset-env'],
 
     ensureExtname(filePath) {
-        const extentions = this.extentions;
+        const autoCompleteExtentions = this.autoCompleteExtentions;
         const extname = path.extname(filePath);
 
         if (extname) {
             return filePath;
         }
 
-        for (let i = 0, len = extentions.length; i < len; i++) {
-            const newPath = `${filePath}${extentions[i]}`;
+        for (let i = 0, len = autoCompleteExtentions.length; i < len; i++) {
+            const newPath = `${filePath}${autoCompleteExtentions[i]}`;
 
             if (fs.existsSync(newPath)) {
                 return newPath;
@@ -128,7 +141,7 @@ const utils = {
         return rt;
     },
 
-    checkPreventDep(absoluteOriginPath) {
+    checkPreventDep(absoluteOriginPath, deps) {
         let shouldPrevent = false;
 
         // callback
@@ -151,45 +164,60 @@ const utils = {
         }
 
         // prevent this pointer
-        if (this.hasDuplicatedDep(this.globalDeps[this.globalEntry], absoluteOriginPath)) {
+        if (this.hasDuplicatedDep(absoluteOriginPath, deps)) {
             shouldPrevent = true;
         }
 
         return shouldPrevent;
     },
 
-    walkTree(tree, stop) {
+    walkTree(tree, pathArr, stop) {
         const keys = Object.keys(tree);
         let key;
 
         for (let i = 0, len = keys.length; i < len; i++) {
             key = keys[i];
 
-            if (stop({ curDep: tree[key], key }) === 'stop') {
+            if (stop({ curDep: tree[key], key, pathArr }) === 'stop') {
                 return;
             }
 
-            this.walkTree(tree[key], stop);
+            this.walkTree(tree[key], pathArr.concat([key]), stop);
         }
     },
 
-    hasDuplicatedDep(globalDeps, absoluteFilePath) {
+    hasDuplicatedDep(absoluteFilePath, deps) {
         let has = false;
 
-        this.walkTree(globalDeps, ({ curDep }) => {
-            const keys = Object.keys(curDep);
-
-            if (keys.indexOf(absoluteFilePath) !== -1) {
+        this.walkTree(this.globalDeps[this.globalEntry], [], ({ curDep, pathArr }) => {
+            if (deps === curDep && pathArr.indexOf(absoluteFilePath) !== -1) {
                 has = true;
                 return 'stop';
             }
+
+            // const keys = Object.keys(curDep);
+
+            // if (keys.indexOf(absoluteFilePath) !== -1) {
+            //     has = true;
+            //     return 'stop';
+            // }
         });
 
         return has;
     },
+
+    // getDepPaths(dep) {
+    //     const globalDeps = this.globalDeps;
+
+    //     this.walkTree(globalDeps, ({ curDep }) => {
+    //         if (curDep === dep) {
+
+    //         }
+    //     });
+    // },
     
     traverseJsCode(jsCode, filePath, deps) {
-        const { ast } = babel.transformSync(jsCode, { ast: true, plugins: this.babelPlugins, presets: this.babelPresets, filename: '.' });
+        const { ast } = babel.transformSync(jsCode, { ast: true, plugins: this.compilerSettings['js'].babelPlugins, presets: this.babelPresets, filename: '.' });
 
         babelTraverse(ast, {
             // import a from 'a'
@@ -199,7 +227,7 @@ const utils = {
                 const originPath = this.formatOriginByAlias(node.source.value);
                 const absoluteOriginPath = this.getAbsoluteOriginPathInJs(originPath, filePath);
 
-                if (this.checkPreventDep(absoluteOriginPath)) {
+                if (this.checkPreventDep(absoluteOriginPath, deps)) {
                     return;
                 }
 
@@ -233,7 +261,7 @@ const utils = {
                     const originPath = this.formatOriginByAlias(path.parent.arguments[0].value);
                     const absoluteOriginPath = this.getAbsoluteOriginPathInJs(originPath, filePath);
 
-                    if (this.checkPreventDep(absoluteOriginPath)) {
+                    if (this.checkPreventDep(absoluteOriginPath, deps)) {
                         return;
                     }
 
@@ -341,7 +369,7 @@ const utils = {
 
                 const absoluteOriginPath = this.getAbsoluteOriginPathInJs(originPath, filePath);
 
-                if (this.checkPreventDep(absoluteOriginPath)) {
+                if (this.checkPreventDep(absoluteOriginPath, deps)) {
                     return;
                 }
 
@@ -402,7 +430,7 @@ const utils = {
             const absoluteOriginPath = this.getAbsoluteOriginPathInCss(url, filePath);
 
             // prevent this pointer
-            if (this.checkPreventDep(absoluteOriginPath)) {
+            if (this.checkPreventDep(absoluteOriginPath, deps)) {
                 return;
             }
 
@@ -461,7 +489,7 @@ const utils = {
 
         const content = fs.readFileSync(entryFilePath, 'utf8');
         const extname = path.extname(entryFilePath);
-        const type = this.extentionCompiler[extname];
+        const type = this.setFileCompiler[extname];
 
         switch (type) {
             case 'js':
@@ -491,14 +519,14 @@ const utils = {
 const getDependencyTree = ({ 
     entry = '',
     searchRoot = '',
-    extentions = null,
-    babelPlugins = null,
+    autoCompleteExtentions = null,
+    compilerSettings = null,
     alias = null,
     filterOut = null,
     onEveryDepFound = null,
     onFilteredInDepFound = null,
     onFilteredOutDepFound = null,
-    extentionCompiler = null,
+    setFileCompiler = null,
     // babelPresets = null
 }) => {
     // check
@@ -521,15 +549,15 @@ const getDependencyTree = ({
     // reset config
     utils.globalEntry = entry;
 
-    extentions && (utils.extentions = extentions);
+    autoCompleteExtentions && (utils.autoCompleteExtentions = autoCompleteExtentions);
 
     onEveryDepFound && (utils.onEveryDepFound = onEveryDepFound);
     onFilteredInDepFound && (utils.onFilteredInDepFound = onFilteredInDepFound);
     onFilteredOutDepFound && (utils.onFilteredOutDepFound = onFilteredOutDepFound);
 
-    babelPlugins && (utils.babelPlugins = babelPlugins);
+    compilerSettings && (Object.assign(utils.compilerSettings, compilerSettings));
 
-    extentionCompiler && (Object.assign(utils.extentionCompiler, extentionCompiler));
+    setFileCompiler && (Object.assign(utils.setFileCompiler, setFileCompiler));
 
     alias && (utils.alias = alias);
 
@@ -557,7 +585,7 @@ const getDependencyTree = ({
         arr: (() => {
             const arr = [];
 
-            utils.walkTree(utils.globalDeps[utils.globalEntry], ({ key }) => {
+            utils.walkTree(utils.globalDeps[utils.globalEntry], [], ({ key }) => {
                 arr.push(key);
             });
 

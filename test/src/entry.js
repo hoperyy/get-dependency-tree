@@ -3,6 +3,9 @@ const zepto = require('zepto');
 
 import _ from 'lodash';
 import bar from './sub/bar';
+import bar1 from './sub/bar.1.js';
+
+bar1();
 
 import('@babel/core');
 

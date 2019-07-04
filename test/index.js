@@ -3,12 +3,12 @@ const getDependencyTree = require('../src/index');
 const path = require('path');
 
 const { tree, arr } = getDependencyTree({
-    entry: path.join(__dirname, 'src/index.vue'),
+    entry: path.join(__dirname, 'src/entry.js'),
     searchRoot: path.join(__dirname, '../..'),
     alias: {
       '@getDep': 'getDepTest'  
     },
-    extentionProcessor: {
+  setFileCompiler: {
         '.we': 'vue'
     }
 });

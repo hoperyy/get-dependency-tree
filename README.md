@@ -1,5 +1,3 @@
-# This module is in developing. Not Stable for now
-
 # Introduction
 
 `get-dependency-tree` will help you get `entry` file's dependency tree/arr.
@@ -67,7 +65,7 @@ require('get-dependency-tree')({
         
         It's the final root folder when finding dependencies.
 
-+   `extentionCompiler: Object | Not Required`
++   `setFileCompiler: Object | Not Required`
 
     +   default
 
@@ -92,14 +90,53 @@ require('get-dependency-tree')({
 
         For example:
 
-        When you set `extentionCompiler` as `{ '.we': 'vue' }`, `get-dependency-tree` will treat file with `.we` extention as `vue` file for compiling.
+        When you set `setFileCompiler` as `{ '.we': 'vue' }`, `get-dependency-tree` will compile file with `.we` extention by compiler `vue`.
         
-+   `extentions: Array | Not Required`
++   `autoCompleteExtentions: Array | Not Required`
     +   default: `['.js', '.vue', '.less', '.scss', '.sass', '.css']`
     +   description
 
         It's like webpack project: `require('a')` --> `require('a.js')`.
-        
+
++   `compilerSettings: Object | Not Required`
+
+    +   default
+
+        ```js
+        {
+            'js': {
+                babelPlugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript']
+            },
+            'less': {
+
+            },
+            'sass': {
+
+            },
+            'css': {
+
+            }
+        }
+        ```
+
+    +   description
+
+        It's compiler settings.
+
+        +   `js`
+
+            `get-dependency-tree` uses **babel** for analyzing. You can set babel plugins here by **override** the default settings.
+
+        +   `less` (to be finished...)
+
+            `get-dependency-tree` uses **less.js render()** for compiling to css code. You can set babel plugins here by **override** the default settings. Well, the default setting is a blank object.
+
+        +   `sass` (to be finished...)
+
+            `get-dependency-tree` uses **sass render()** for analyzing. You can set babel plugins here by **override** the default settings. Well, the default setting is a blank object.
+
+        +   `css` (to be finished...)
+
 +   `babelPlugins: Array | Not Required`
     +   default
 

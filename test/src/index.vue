@@ -13,7 +13,7 @@ export default {
 </script>
 
 <style lang="less">
-// @import 'import.css';
+@import url(import.css);
 .foo { background: url(README.md); }
 .bar { background-image: url(../bar.png); }
 </style>
