@@ -242,4 +242,4 @@ require('get-dependency-tree')({
 
 ## LICENSE
 
-BSD
+MIT
