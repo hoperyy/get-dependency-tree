@@ -105,7 +105,10 @@ require('get-dependency-tree')({
         ```js
         {
             'js': {
-                babelPlugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript']
+                babelPlugins: [
+                    '@babel/plugin-syntax-dynamic-import', 
+                    '@babel/plugin-transform-typescript'
+                ]
             },
             'less': {
 
