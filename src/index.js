@@ -217,7 +217,13 @@ const utils = {
     // },
     
     traverseJsCode(jsCode, filePath, deps) {
-        const { ast } = babel.transformSync(jsCode, { ast: true, plugins: this.compilerSettings['js'].babelPlugins, presets: this.babelPresets, filename: '.' });
+        const { ast } = babel.transformSync(jsCode, {
+            ast: true, 
+            plugins: this.compilerSettings['js'].babelPlugins, 
+            presets: this.babelPresets, 
+            filename: '.',
+            cwd: __dirname
+        });
 
         babelTraverse(ast, {
             // import a from 'a'
@@ -531,8 +537,6 @@ const utils = {
         }
     },
 };
-
-
 
 const getDependencyTree = ({ 
     entry = '',
