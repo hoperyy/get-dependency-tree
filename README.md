@@ -146,7 +146,8 @@ require('get-dependency-tree')({
         ```js
         [
             '@babel/plugin-syntax-dynamic-import',
-            '@babel/plugin-transform-typescript'
+            '@babel/plugin-transform-typescript',
+            '@babel/plugin-proposal-class-properties'
         ]
         ```
         

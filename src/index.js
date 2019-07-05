@@ -25,7 +25,7 @@ const utils = {
     },
     compilerSettings: {
         'js': {
-            babelPlugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript']
+            babelPlugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript', '@babel/plugin-proposal-class-properties']
         },
         'less': {
 
