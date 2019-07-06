@@ -106,8 +106,9 @@ require('get-dependency-tree')({
         {
             'js': {
                 babelPlugins: [
-                    '@babel/plugin-syntax-dynamic-import', 
-                    '@babel/plugin-transform-typescript'
+                    '@babel/plugin-syntax-dynamic-import',
+                    '@babel/plugin-transform-typescript',
+                    '@babel/plugin-proposal-class-properties'
                 ]
             },
             'less': {
@@ -139,23 +140,6 @@ require('get-dependency-tree')({
             `get-dependency-tree` uses **sass render()** for analyzing. You can set babel plugins here by **override** the default settings. Well, the default setting is a blank object.
 
         +   `css` (to be finished...)
-
-+   `babelPlugins: Array | Not Required`
-    +   default
-
-        ```js
-        [
-            '@babel/plugin-syntax-dynamic-import',
-            '@babel/plugin-transform-typescript',
-            '@babel/plugin-proposal-class-properties'
-        ]
-        ```
-        
-    +   description
-
-        `get-dependency-tree` needs babel for compiling.
-        
-        When you set it, it will override default value.
         
 +   `alias: Object | Not Required`
     +   default: `null`
