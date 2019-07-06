@@ -49,7 +49,7 @@ require('get-dependency-tree')({
 });
 ```
 
-+   `getDependencyTree: String | Required`
++   `entry: String | Required`
     +   default: `''`
     +   description
 
