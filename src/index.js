@@ -398,10 +398,8 @@ const utils = {
         const compileResult = vueTemplateCompiler.parseComponent(vueCode);
 
         // const scriptLang = compileResult.script.attrs.lang || 'js';
-        const scriptContent = compileResult.script.content;
-
-        if (scriptContent) {
-            this.traverseJsCode(scriptContent, filePath, deps);
+        if (compileResult.script && compileResult.script.content) {
+            this.traverseJsCode(compileResult.script.content, filePath, deps);
         }
 
         compileResult.styles.forEach(style => {
