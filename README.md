@@ -133,7 +133,7 @@ require('get-dependency-tree')({
 
         +   `less`
 
-            `get-dependency-tree` uses **less.js render()** for compiling to less code.
+            `get-dependency-tree` uses **less.js render()** for analyzing.
 
         +   `sass`
 
@@ -141,7 +141,7 @@ require('get-dependency-tree')({
 
         +   `css`
 
-            `get-dependency-tree` uses **less.js render()** for compiling to css code.
+            `get-dependency-tree` uses **less.js render()** for analyzing.
         
 +   `alias: Object | Not Required`
     +   default: `null`
