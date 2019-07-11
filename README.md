@@ -133,11 +133,11 @@ require('get-dependency-tree')({
 
         +   `less` (to be finished...)
 
-            `get-dependency-tree` uses **less.js render()** for compiling to css code. You can set babel plugins here by **override** the default settings. Well, the default setting is a blank object.
+            `get-dependency-tree` uses **less.js render()** for compiling to css code.
 
         +   `sass` (to be finished...)
 
-            `get-dependency-tree` uses **sass render()** for analyzing. You can set babel plugins here by **override** the default settings. Well, the default setting is a blank object.
+            `get-dependency-tree` uses **sass render()** for analyzing.
 
         +   `css` (to be finished...)
         
