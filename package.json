@@ -26,7 +26,6 @@
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/plugin-transform-typescript": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
-    "@babel/preset-typescript": "^7.3.3",
     "@babel/traverse": "^7.4.5",
     "css-tree": "^1.0.0-alpha.29",
     "is-relative": "^1.0.0",
