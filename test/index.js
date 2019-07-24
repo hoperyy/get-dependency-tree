@@ -3,7 +3,7 @@ const getDependencyTree = require('../src/index');
 const path = require('path');
 
 const { tree, arr } = getDependencyTree({
-    entry: path.join(__dirname, 'src/entry.js'),
+    entry: path.join(__dirname, 'src/entry.ts'),
     searchRoot: path.join(__dirname, '../..'),
     alias: {
       '@getDep': 'getDepTest'  

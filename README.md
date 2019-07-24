@@ -69,18 +69,18 @@ require('get-dependency-tree')({
 
     +   default
 
-        The file with extentions as left key is compiled by compilers as right value.
+        The file with extentions as left **key** is compiled by compilers as right **value**.
 
-        4 types of value are supported for now: `js / vue / less / sass / css`.
+        5 compilers are supported for now: `js / vue / less / sass / css`.
 
         ```js
         {
-            '.js': 'js',
-            '.vue': 'vue',
-            '.less': 'less',
-            '.scss': 'sass',
-            '.sass': 'sass',
-            '.css': 'css',
+            '.js': 'js', // file with extname `.js` will be compiled by compiler `js`
+            '.vue': 'vue', // file with extname `.vue` will be compiled by compiler `vue`
+            '.less': 'less', // file with extname `.less` will be compiled by compiler `less`
+            '.scss': 'sass', // file with extname `.scss` will be compiled by compiler `sass`
+            '.sass': 'sass', // file with extname `.sass` will be compiled by compiler `sass`
+            '.css': 'css', // file with extname `.css` will be compiled by compiler `css`
         }
         ```
 
@@ -129,7 +129,9 @@ require('get-dependency-tree')({
 
         +   `js`
 
-            `get-dependency-tree` uses **babel** for analyzing. You can set babel plugins here by **override** the default settings.
+            `get-dependency-tree` uses **babel** for analyzing. You can set `babelPlugins` here by **override** the default settings.
+
+            >   Unfortunately, `babelPresets` is not allowed here because `babel.transform` won't read config `presets` somehow for now when testing.
 
         +   `less`
 

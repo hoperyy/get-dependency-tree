@@ -17,6 +17,7 @@ const utils = {
     alias: null,
     setFileCompiler: {
         '.js': 'js',
+        '.ts': 'js',
         '.vue': 'vue',
         '.less': 'less',
         '.scss': 'sass',
@@ -511,9 +512,9 @@ const utils = {
 
         const content = fs.readFileSync(entryFilePath, 'utf8');
         const extname = path.extname(entryFilePath);
-        const type = this.setFileCompiler[extname];
+        const compiler = this.setFileCompiler[extname];
 
-        switch (type) {
+        switch (compiler) {
             case 'js':
                 this.traverseJsCode(content, entryFilePath, deps);
                 break;
