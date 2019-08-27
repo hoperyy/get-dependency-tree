@@ -98,6 +98,12 @@ require('get-dependency-tree')({
 
         It's like webpack project: `require('a')` --> `require('a.js')`.
 
++   `resolveModules: Array | Not Required`
+    +   default: `[]`
+    +   description
+
+        It's like webpack project: `resolve: modules: []`.
+
 +   `compilerSettings: Object | Not Required`
 
     +   default

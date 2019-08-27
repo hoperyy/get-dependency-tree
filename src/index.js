@@ -9,263 +9,389 @@ const fs = require('fs');
 const path = require('path');
 const isRelative = require('is-relative');
 
-const utils = {
-    // interface config
-    autoCompleteExtentions: ['.js', '.vue', '.less', '.scss', '.sass', '.css'],
-    globalEntry: '',
-    searchRoot: '',
-    alias: null,
-    setFileCompiler: {
-        '.js': 'js',
-        '.ts': 'js',
-        '.vue': 'vue',
-        '.less': 'less',
-        '.scss': 'sass',
-        '.sass': 'sass',
-        '.css': 'css',
-    },
-    compilerSettings: {
-        'js': {
-            babelPlugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript', '@babel/plugin-proposal-class-properties']
+
+
+const getDependencyTree = ({ 
+    entry = '',
+    searchRoot = '',
+    autoCompleteExtentions = null,
+    compilerSettings = null,
+    alias = null,
+    filterOut = null,
+    onEveryDepFound = null,
+    onFilteredInDepFound = null,
+    onFilteredOutDepFound = null,
+    setFileCompiler = null,
+    resolveModules = [],
+    // babelPresets = null
+}) => {
+    const utils = {
+        // interface config
+        autoCompleteExtentions: ['.js', '.vue', '.less', '.scss', '.sass', '.css'],
+        globalEntry: '',
+        searchRoot: '',
+        alias: null,
+        setFileCompiler: {
+            '.js': 'js',
+            '.ts': 'js',
+            '.vue': 'vue',
+            '.less': 'less',
+            '.scss': 'sass',
+            '.sass': 'sass',
+            '.css': 'css',
         },
-        'less': {
-
-        },
-        'sass': {
-
-        },
-        'css': {
-
-        }
-    },
-    
-    // filter
-    filterOut({ depFilePath, isNodeModules, exists }) {
-        if (isNodeModules) {
-            return true;
-        }
-
-        if (!exists) {
-            return true;
-        }
-
-        return false;
-    },
-
-    // callbacks
-    onEveryDepFound(absoluteFilePath) {},
-    onFilteredInDepFound(absoluteFilePath) {},
-    onFilteredOutDepFound(absoluteFilePath) {},
-
-    // node_modules tag
-    nodeModulesFileMap: {},
-
-    // not configed
-    globalDeps: {},
-    babelPresets: ['@babel/preset-env'],
-
-    ensureExtname(filePath) {
-        const autoCompleteExtentions = this.autoCompleteExtentions;
-        const extname = path.extname(filePath);
-
-        if (extname && autoCompleteExtentions.indexOf(extname) !== -1) {
-            return filePath;
-        }
-
-        for (let i = 0, len = autoCompleteExtentions.length; i < len; i++) {
-            const newPath = `${filePath}${autoCompleteExtentions[i]}`;
-
-            if (fs.existsSync(newPath)) {
-                return newPath;
-            }
-        }
-
-        return filePath;
-    },
-
-    getAbsoluteOriginPathInJs(originPath, wrapperFilePath) {
-        const folder = path.dirname(wrapperFilePath);
-
-        if (isRelative(originPath)) {
-            return this.hasRelativeDotTag(originPath) ? this.getAbsoluteNodeModulesFilePath(originPath, wrapperFilePath) : this.ensureExtname(path.join(folder, originPath));
-        } else {
-            return this.ensureExtname(originPath);
-        }
-    },
-
-    getAbsoluteOriginPathInCss(originPath, wrapperFilePath) {
-        const folder = path.dirname(wrapperFilePath);
-
-        if (isRelative(originPath)) {
-            return path.join(folder, originPath);
-        } else {
-            return originPath;
-        }
-    },
-
-    hasRelativeDotTag(originPath) {
-        return !/^(\.+)\//.test(originPath);
-    },
-
-    formatOriginByAlias(originPath) {
-        if (!this.alias) {
-            return originPath;
-        }
-
-        for (let key in this.alias) {
-            if (originPath.indexOf(key) == 0) {
-                return originPath.replace(key, this.alias[key]);
-            }   
-        }
-
-        return originPath;
-    },
-
-    getAbsoluteNodeModulesFilePath(originPath, wrapperFilePath) {
-        let curFolder = path.dirname(wrapperFilePath);
-        const searchRoot = this.searchRoot;
-
-        let rt = originPath;
-        while (curFolder.indexOf(searchRoot) !== -1) {
-            const absoluteOriginPath = path.join(curFolder, 'node_modules', originPath);
-
-            if (fs.existsSync(absoluteOriginPath)) {
-                rt = absoluteOriginPath;
-                break;
-            }
-
-            curFolder = path.join(curFolder, '..');
-        }
-
-        // tag node_modules file
-        this.nodeModulesFileMap[rt] = true;
-        return rt;
-    },
-
-    checkPreventDep(absoluteOriginPath, deps) {
-        let shouldPrevent = false;
-
-        // callback
-        this.onEveryDepFound && this.onEveryDepFound(absoluteOriginPath);
-
-        // if won't show node_modules dep, return
-        const filteredOut = this.filterOut({ 
-            depFilePath: absoluteOriginPath,
-            exists: fs.existsSync(absoluteOriginPath) && fs.statSync(absoluteOriginPath).isFile(),
-            isNodeModules: this.nodeModulesFileMap[absoluteOriginPath]
-        });
-
-        if (filteredOut) {
-            // callback
-            this.onFilteredOutDepFound && this.onFilteredOutDepFound(absoluteOriginPath);
-            shouldPrevent = true;
-        } else {
-            // callback
-            this.onFilteredInDepFound && this.onFilteredInDepFound(absoluteOriginPath);
-        }
-
-        // prevent this pointer
-        if (this.hasDuplicatedDep(absoluteOriginPath, deps)) {
-            shouldPrevent = true;
-        }
-
-        return shouldPrevent;
-    },
-
-    walkTree(tree, pathArr, stop) {
-        const keys = Object.keys(tree);
-        let key;
-
-        for (let i = 0, len = keys.length; i < len; i++) {
-            key = keys[i];
-
-            if (stop({ curDep: tree[key], key, pathArr }) === 'stop') {
-                return;
-            }
-
-            this.walkTree(tree[key], pathArr.concat([key]), stop);
-        }
-    },
-
-    hasDuplicatedDep(absoluteFilePath, deps) {
-        let has = false;
-
-        this.walkTree(this.globalDeps[this.globalEntry], [], ({ curDep, pathArr }) => {
-            if (deps === curDep && pathArr.indexOf(absoluteFilePath) !== -1) {
-                has = true;
-                return 'stop';
-            }
-
-            // const keys = Object.keys(curDep);
-
-            // if (keys.indexOf(absoluteFilePath) !== -1) {
-            //     has = true;
-            //     return 'stop';
-            // }
-        });
-
-        return has;
-    },
-
-    // getDepPaths(dep) {
-    //     const globalDeps = this.globalDeps;
-
-    //     this.walkTree(globalDeps, ({ curDep }) => {
-    //         if (curDep === dep) {
-
-    //         }
-    //     });
-    // },
-    
-    traverseJsCode(jsCode, filePath, deps) {
-        const { ast } = babel.transformSync(jsCode, {
-            ast: true, 
-            plugins: this.compilerSettings['js'].babelPlugins, 
-            presets: this.babelPresets, 
-            filename: '.',
-            cwd: __dirname
-        });
-
-        babelTraverse(ast, {
-            // import a from 'a'
-            // import 'a'
-            ImportDeclaration: (path) => {
-                const node = path.node;
-                const originPath = this.formatOriginByAlias(node.source.value);
-                const absoluteOriginPath = this.getAbsoluteOriginPathInJs(originPath, filePath);
-
-                if (this.checkPreventDep(absoluteOriginPath, deps)) {
-                    return;
-                }
-
-                this.ensureDep(deps, absoluteOriginPath);
-
-                // won't analyze node_modules file dep
-                if (this.nodeModulesFileMap[absoluteOriginPath]) {
-                    return;
-                }
-
-                // 递归
-                this.run(absoluteOriginPath, deps[absoluteOriginPath]);
+        compilerSettings: {
+            'js': {
+                babelPlugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript', '@babel/plugin-proposal-class-properties']
             },
-            // require('a')
-            Identifier: (path) => {
-                const node = path.node;
-                
-                if (node.name !== 'require' ) {
+            'less': {
+
+            },
+            'sass': {
+
+            },
+            'css': {
+
+            }
+        },
+
+        // filter
+        filterOut({ depFilePath, isNodeModules, exists }) {
+            if (isNodeModules) {
+                return true;
+            }
+
+            if (!exists) {
+                return true;
+            }
+
+            return false;
+        },
+
+        resolveModules: [],
+
+        // callbacks
+        onEveryDepFound(absoluteFilePath) { },
+        onFilteredInDepFound(absoluteFilePath) { },
+        onFilteredOutDepFound(absoluteFilePath) { },
+
+        // node_modules tag
+        nodeModulesFileMap: {},
+
+        // not configed
+        globalDeps: {},
+        babelPresets: ['@babel/preset-env'],
+
+        ensureExtname(filePath) {
+            const autoCompleteExtentions = this.autoCompleteExtentions;
+            const extname = path.extname(filePath);
+
+            if (extname && autoCompleteExtentions.indexOf(extname) !== -1) {
+                return filePath;
+            }
+
+            for (let i = 0, len = autoCompleteExtentions.length; i < len; i++) {
+                const newPath = `${filePath}${autoCompleteExtentions[i]}`;
+
+                if (fs.existsSync(newPath)) {
+                    return newPath;
+                }
+            }
+
+            return filePath;
+        },
+
+        getAbsoluteOriginPathInJs(originPath, wrapperFilePath) {
+            const folder = path.dirname(wrapperFilePath);
+
+            if (isRelative(originPath)) {
+                return this.hasRelativeDotTag(originPath) ? this.getAbsoluteNodeModulesFilePath(originPath, wrapperFilePath) : this.ensureExtname(path.join(folder, originPath));
+            } else {
+                return this.ensureExtname(originPath);
+            }
+        },
+
+        getAbsoluteOriginPathInCss(originPath, wrapperFilePath) {
+            const folder = path.dirname(wrapperFilePath);
+
+            if (isRelative(originPath)) {
+                return path.join(folder, originPath);
+            } else {
+                return originPath;
+            }
+        },
+
+        hasRelativeDotTag(originPath) {
+            return !/^(\.+)\//.test(originPath);
+        },
+
+        formatOriginByAlias(originPath) {
+            if (!this.alias) {
+                return originPath;
+            }
+
+            for (let key in this.alias) {
+                if (originPath.indexOf(key) == 0) {
+                    return originPath.replace(key, this.alias[key]);
+                }
+            }
+
+            return originPath;
+        },
+
+        getAbsoluteNodeModulesFilePath(originPath, wrapperFilePath) {
+            let curFolder = path.dirname(wrapperFilePath);
+            const searchRoot = this.searchRoot;
+
+            let rt = originPath;
+            while (curFolder.indexOf(searchRoot) !== -1) {
+                const absoluteOriginPath = path.join(curFolder, 'node_modules', originPath);
+
+                if (fs.existsSync(absoluteOriginPath)) {
+                    rt = absoluteOriginPath;
+                    break;
+                }
+
+                curFolder = path.join(curFolder, '..');
+            }
+
+            // tag node_modules file
+            this.nodeModulesFileMap[rt] = true;
+            return rt;
+        },
+
+        checkPreventDep(absoluteOriginPath, deps) {
+            let shouldPrevent = false;
+
+            // callback
+            this.onEveryDepFound && this.onEveryDepFound(absoluteOriginPath);
+
+            // if won't show node_modules dep, return
+            const filteredOut = this.filterOut({
+                depFilePath: absoluteOriginPath,
+                exists: fs.existsSync(absoluteOriginPath) && fs.statSync(absoluteOriginPath).isFile(),
+                isNodeModules: this.nodeModulesFileMap[absoluteOriginPath]
+            });
+
+            if (filteredOut) {
+                // callback
+                this.onFilteredOutDepFound && this.onFilteredOutDepFound(absoluteOriginPath);
+                shouldPrevent = true;
+            } else {
+                // callback
+                this.onFilteredInDepFound && this.onFilteredInDepFound(absoluteOriginPath);
+            }
+
+            // prevent this pointer
+            if (this.hasDuplicatedDep(absoluteOriginPath, deps)) {
+                shouldPrevent = true;
+            }
+
+            return shouldPrevent;
+        },
+
+        walkTree(tree, pathArr, stop) {
+            const keys = Object.keys(tree);
+            let key;
+
+            for (let i = 0, len = keys.length; i < len; i++) {
+                key = keys[i];
+
+                if (stop({ curDep: tree[key], key, pathArr }) === 'stop') {
                     return;
                 }
 
-                if (path.parent.type !== 'CallExpression') {
-                    return;
+                this.walkTree(tree[key], pathArr.concat([key]), stop);
+            }
+        },
+
+        hasDuplicatedDep(absoluteFilePath, deps) {
+            let has = false;
+
+            this.walkTree(this.globalDeps[this.globalEntry], [], ({ curDep, pathArr }) => {
+                if (deps === curDep && pathArr.indexOf(absoluteFilePath) !== -1) {
+                    has = true;
+                    return 'stop';
                 }
 
-                if (!path.parent.arguments.length) {
-                    return;
-                }
+                // const keys = Object.keys(curDep);
 
-                if (path.parent.arguments[0].type === 'StringLiteral') {
-                    const originPath = this.formatOriginByAlias(path.parent.arguments[0].value);
+                // if (keys.indexOf(absoluteFilePath) !== -1) {
+                //     has = true;
+                //     return 'stop';
+                // }
+            });
+
+            return has;
+        },
+
+        // getDepPaths(dep) {
+        //     const globalDeps = this.globalDeps;
+
+        //     this.walkTree(globalDeps, ({ curDep }) => {
+        //         if (curDep === dep) {
+
+        //         }
+        //     });
+        // },
+
+        traverseJsCode(jsCode, filePath, deps) {
+            const { ast } = babel.transformSync(jsCode, {
+                ast: true,
+                plugins: this.compilerSettings['js'].babelPlugins,
+                presets: this.babelPresets,
+                filename: '.',
+                cwd: __dirname
+            });
+
+            babelTraverse(ast, {
+                // import a from 'a'
+                // import 'a'
+                ImportDeclaration: (path) => {
+                    const node = path.node;
+                    const originPath = this.formatOriginByAlias(node.source.value);
+                    const absoluteOriginPath = this.getAbsoluteOriginPathInJs(originPath, filePath);
+
+                    if (this.checkPreventDep(absoluteOriginPath, deps)) {
+                        return;
+                    }
+
+                    this.ensureDep(deps, absoluteOriginPath);
+
+                    // won't analyze node_modules file dep
+                    if (this.nodeModulesFileMap[absoluteOriginPath]) {
+                        return;
+                    }
+
+                    // 递归
+                    this.run(absoluteOriginPath, deps[absoluteOriginPath]);
+                },
+                // require('a')
+                Identifier: (path) => {
+                    const node = path.node;
+
+                    if (node.name !== 'require') {
+                        return;
+                    }
+
+                    if (path.parent.type !== 'CallExpression') {
+                        return;
+                    }
+
+                    if (!path.parent.arguments.length) {
+                        return;
+                    }
+
+                    if (path.parent.arguments[0].type === 'StringLiteral') {
+                        const originPath = this.formatOriginByAlias(path.parent.arguments[0].value);
+                        const absoluteOriginPath = this.getAbsoluteOriginPathInJs(originPath, filePath);
+
+                        if (this.checkPreventDep(absoluteOriginPath, deps)) {
+                            return;
+                        }
+
+                        this.ensureDep(deps, absoluteOriginPath);
+
+                        // won't analyze node_modules file dep
+                        if (this.nodeModulesFileMap[absoluteOriginPath]) {
+                            return;
+                        }
+
+                        // 递归
+                        this.run(absoluteOriginPath, deps[absoluteOriginPath]);
+                    }
+                },
+
+                // import('./haha.js');
+
+                // import(() => './haha.js');
+
+                // import(() => {
+                //     return './haha.js'
+                // });
+
+                // import(function a() {
+                //     return './haha.js'
+                // });
+                Import: (path) => {
+                    // ensure 'import(...)'  perhaps not nessesary
+                    if (path.parent.type !== 'CallExpression') {
+                        return;
+                    }
+
+                    // mast has arguments
+                    if (!path.parent.arguments.length) {
+                        return;
+                    }
+
+                    const firstArg = path.parent.arguments[0];
+
+                    // set originPath
+                    let originPath;
+
+                    switch (firstArg.type) {
+                        // import('./haha.js');
+                        case 'StringLiteral':
+                            {
+                                originPath = this.formatOriginByAlias(firstArg.value);
+                            }
+                            break;
+                        case 'ArrowFunctionExpression':
+                            {
+                                const body = firstArg.body;
+
+                                // import(() => './haha.js');
+                                if (body.type === 'StringLiteral') {
+                                    originPath = this.formatOriginByAlias(firstArg.body.value);
+                                }
+
+                                // import(() => {
+                                //     return './haha.js'
+                                // });
+                                if (body.type === 'BlockStatement') {
+                                    // loop body.body
+                                    for (let i = 0, len = body.body.length; i < len; i++) {
+                                        const item = body.body[i];
+
+                                        if (item.type === 'ReturnStatement') {
+                                            if (item.argument.type === 'StringLiteral') {
+                                                originPath = this.formatOriginByAlias(item.argument.value);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        // import(function a() {
+                        //     return './haha.js'
+                        // });
+                        case 'FunctionExpression':
+                            {
+                                const body = firstArg.body;
+                                if (body.type === 'BlockStatement') {
+                                    // loop body.body
+                                    for (let i = 0, len = body.body.length; i < len; i++) {
+                                        const item = body.body[i];
+
+                                        if (item.type === 'ReturnStatement') {
+                                            if (item.argument.type === 'StringLiteral') {
+                                                originPath = this.formatOriginByAlias(item.argument.value);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (!originPath) {
+                        return;
+                    }
+
                     const absoluteOriginPath = this.getAbsoluteOriginPathInJs(originPath, filePath);
 
                     if (this.checkPreventDep(absoluteOriginPath, deps)) {
@@ -282,100 +408,84 @@ const utils = {
                     // 递归
                     this.run(absoluteOriginPath, deps[absoluteOriginPath]);
                 }
-            },
 
-            // import('./haha.js');
+            });
+        },
 
-            // import(() => './haha.js');
+        _getVueTemplateCompiler() {
+            let finalPath = '';
 
-            // import(() => {
-            //     return './haha.js'
-            // });
+            for (let i = 0, len = utils.resolveModules.length; i < len; i++) {
+                const tmp = path.join(utils.resolveModules[i], 'vue-template-compiler');
+                if (fs.existsSync()) {
+                    finalPath = tmp;
+                    break;
+                }
+            }
 
-            // import(function a() {
-            //     return './haha.js'
-            // });
-            Import: (path) => {
-                // ensure 'import(...)'  perhaps not nessesary
-                if (path.parent.type !== 'CallExpression') {
-                    return;
+            return require(finalPath || 'vue-template-compiler');
+        },
+
+        traverseVueCode(vueCode, filePath, deps) {
+            // vue-template-compier 解析出 template、script、styles 三部分
+            const compileResult = this._getVueTemplateCompiler().parseComponent(vueCode);
+
+            // const scriptLang = compileResult.script.attrs.lang || 'js';
+            if (compileResult.script && compileResult.script.content) {
+                this.traverseJsCode(compileResult.script.content, filePath, deps);
+            }
+
+            compileResult.styles.forEach(style => {
+                const lang = style.attrs.lang || 'css';
+                const styleContent = style.content;
+
+                this.traverseStyleCode(styleContent, filePath, deps, lang);
+            });
+        },
+
+        ensureDep(deps, absoluteFilePath) {
+            if (!deps[absoluteFilePath]) {
+                deps[absoluteFilePath] = {};
+            }
+        },
+
+        walkCssAst(css, filePath, deps) {
+            const ast = csstree.parse(css);
+
+            // remove: '  "
+            const removeQuotationMarks = value => value.replace(/^\'/g, '').replace(/\'$/g, '').replace(/^\"/g, '').replace(/\"$/g, '');
+
+            const urls = [];
+            csstree.walk(ast, (node) => {
+                // .foo { background: url(README.md); }
+                // .bar { background-image: url(../ bar.png); }
+                // @import url('import2.css');
+                if (node.type === 'Url') {
+                    const value = removeQuotationMarks(node.value.value);
+                    urls.push(value);
                 }
 
-                // mast has arguments
-                if (!path.parent.arguments.length) {
-                    return;
-                }
+                // @import 'import.css';
+                // @import (css) "filename";
+                // @example '1' 2;
+                if (node.type === 'Atrule') {
+                    try {
+                        const value = removeQuotationMarks(node.prelude.children.head.data.value);
 
-                const firstArg = path.parent.arguments[0];
-
-                // set originPath
-                let originPath;
-
-                switch (firstArg.type) {
-                    // import('./haha.js');
-                    case 'StringLiteral':
-                        {
-                            originPath = this.formatOriginByAlias(firstArg.value);
+                        // delete 
+                        // @import (css) "filename";
+                        // @example '1' 2;
+                        if (this.autoCompleteExtentions.indexOf(path.extname(value)) !== -1) {
+                            urls.push(value);
                         }
-                        break;
-                    case 'ArrowFunctionExpression':
-                        {
-                            const body = firstArg.body;
-
-                            // import(() => './haha.js');
-                            if (body.type === 'StringLiteral') {
-                                originPath = this.formatOriginByAlias(firstArg.body.value);
-                            }
-
-                            // import(() => {
-                            //     return './haha.js'
-                            // });
-                            if (body.type === 'BlockStatement') {
-                                // loop body.body
-                                for (let i = 0, len = body.body.length; i < len; i++) {
-                                    const item = body.body[i];
-
-                                    if (item.type === 'ReturnStatement') {
-                                        if (item.argument.type === 'StringLiteral') {
-                                            originPath = this.formatOriginByAlias(item.argument.value);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        break;
-                    // import(function a() {
-                    //     return './haha.js'
-                    // });
-                    case 'FunctionExpression':
-                        {
-                            const body = firstArg.body;
-                            if (body.type === 'BlockStatement') {
-                                // loop body.body
-                                for (let i = 0, len = body.body.length; i < len; i++) {
-                                    const item = body.body[i];
-
-                                    if (item.type === 'ReturnStatement') {
-                                        if (item.argument.type === 'StringLiteral') {
-                                            originPath = this.formatOriginByAlias(item.argument.value);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        break;
+                    } catch (err) { }
                 }
+            });
 
-                if (!originPath) {
-                    return;
-                }
+            urls.forEach(url => {
+                const absoluteOriginPath = this.getAbsoluteOriginPathInCss(url, filePath);
 
-                const absoluteOriginPath = this.getAbsoluteOriginPathInJs(originPath, filePath);
-
+                // prevent this pointer
                 if (this.checkPreventDep(absoluteOriginPath, deps)) {
                     return;
                 }
@@ -387,169 +497,78 @@ const utils = {
                     return;
                 }
 
-                // 递归
                 this.run(absoluteOriginPath, deps[absoluteOriginPath]);
-            }
+            });
+        },
 
-        });
-    },
-
-    traverseVueCode(vueCode, filePath, deps) {
-        // vue-template-compier 解析出 template、script、styles 三部分
-        const compileResult = vueTemplateCompiler.parseComponent(vueCode);
-
-        // const scriptLang = compileResult.script.attrs.lang || 'js';
-        if (compileResult.script && compileResult.script.content) {
-            this.traverseJsCode(compileResult.script.content, filePath, deps);
-        }
-
-        compileResult.styles.forEach(style => {
-            const lang = style.attrs.lang || 'css';
-            const styleContent = style.content;
-
-            this.traverseStyleCode(styleContent, filePath, deps, lang);
-        });
-    },
-
-    ensureDep(deps, absoluteFilePath) {
-        if (!deps[absoluteFilePath]) {
-            deps[absoluteFilePath] = {};
-        }
-    },
-
-    walkCssAst(css, filePath, deps) {
-        const ast = csstree.parse(css);
-
-        // remove: '  "
-        const removeQuotationMarks = value => value.replace(/^\'/g, '').replace(/\'$/g, '').replace(/^\"/g, '').replace(/\"$/g, '');
-
-        const urls = [];
-        csstree.walk(ast, (node) => {
-            // .foo { background: url(README.md); }
-            // .bar { background-image: url(../ bar.png); }
-            // @import url('import2.css');
-            if (node.type === 'Url') {
-                const value = removeQuotationMarks(node.value.value);
-                urls.push(value);
-            }
-
-            // @import 'import.css';
-            // @import (css) "filename";
-            // @example '1' 2;
-            if (node.type === 'Atrule') {
-                try {
-                    const value = removeQuotationMarks(node.prelude.children.head.data.value);
-
-                    // delete 
-                    // @import (css) "filename";
-                    // @example '1' 2;
-                    if (this.autoCompleteExtentions.indexOf(path.extname(value)) !== -1) {
-                        urls.push(value);
+        traverseStyleCode(styleCode, filePath, deps, lang) {
+            if (lang === 'scss' || lang === 'sass') {
+                sass.render({ data: styleCode }, (err, result) => {
+                    if (err) {
+                        throw Error(`[get-dependency-tree] error in ${lang} rendering: ${JSON.stringify(err)}`);
                     }
-                } catch(err) {}
-            }
-        });
 
-        urls.forEach(url => {
-            const absoluteOriginPath = this.getAbsoluteOriginPathInCss(url, filePath);
-
-            // prevent this pointer
-            if (this.checkPreventDep(absoluteOriginPath, deps)) {
+                    const css = result.css.toString();
+                    this.walkCssAst(css, filePath, deps);
+                });
                 return;
             }
 
-            this.ensureDep(deps, absoluteOriginPath);
+            // less.render can remove comment
+            if (lang === 'less' || lang === 'css') {
+                // @import (css) "filename"; --> @import "filename";
+                // @import url('import.css'); --> @import url('import.css');
+                // @import 'import.css'; --> @import 'import.css';
+                less.render(styleCode, (err, result) => {
+                    if (err) {
+                        throw Error(`[get-dependency-tree] error in ${lang} rendering: ${JSON.stringify(err)}`);
+                    }
+                    const css = result.css;
 
-            // won't analyze node_modules file dep
-            if (this.nodeModulesFileMap[absoluteOriginPath]) {
+                    this.walkCssAst(css, filePath, deps);
+                });
                 return;
             }
 
-            this.run(absoluteOriginPath, deps[absoluteOriginPath]);
-        });
-    },
+            throw Error(`[get-dependency-tree] style lang "${lang}" is not supported`);
+        },
 
-    traverseStyleCode(styleCode, filePath, deps, lang) {
-        if (lang === 'scss' || lang === 'sass') {
-            sass.render({ data: styleCode }, (err, result) => {
-                if (err) {
-                    throw Error(`[get-dependency-tree] error in ${lang} rendering: ${JSON.stringify(err)}`);
-                }
+        run(entryFilePath, deps) {
+            if (!fs.existsSync(entryFilePath)) {
+                return;
+            }
 
-                const css = result.css.toString();
-                this.walkCssAst(css, filePath, deps);
-            });
-            return;
-        }
+            if (!fs.statSync(entryFilePath).isFile()) {
+                return;
+            }
 
-        // less.render can remove comment
-        if (lang === 'less' || lang === 'css') {
-            // @import (css) "filename"; --> @import "filename";
-            // @import url('import.css'); --> @import url('import.css');
-            // @import 'import.css'; --> @import 'import.css';
-            less.render(styleCode, (err, result) => {
-                if (err) {
-                    throw Error(`[get-dependency-tree] error in ${lang} rendering: ${JSON.stringify(err)}`);
-                }
-                const css = result.css;
+            const content = fs.readFileSync(entryFilePath, 'utf8');
+            const extname = path.extname(entryFilePath);
+            const compiler = this.setFileCompiler[extname];
 
-                this.walkCssAst(css, filePath, deps);
-            });
-            return;
-        }
+            switch (compiler) {
+                case 'js':
+                    this.traverseJsCode(content, entryFilePath, deps);
+                    break;
+                case 'vue':
+                    this.traverseVueCode(content, entryFilePath, deps);
+                    break;
+                case 'css':
+                    this.traverseStyleCode(content, entryFilePath, deps, 'css');
+                    break;
+                case 'less':
+                    this.traverseStyleCode(content, entryFilePath, deps, 'less');
+                    break;
+                case 'sass':
+                    this.traverseStyleCode(content, entryFilePath, deps, 'sass');
+                    break;
+                default:
+                    console.log(`[get-dependency-tree] file type "${extname}" is not supported for now.`);
+                    break;
+            }
+        },
+    };
 
-        throw Error(`[get-dependency-tree] style lang "${lang}" is not supported`);
-    },
-
-    run(entryFilePath, deps) {
-        if (!fs.existsSync(entryFilePath)) {
-            return;
-        }
-
-        if (!fs.statSync(entryFilePath).isFile()) {
-            return;
-        }
-
-        const content = fs.readFileSync(entryFilePath, 'utf8');
-        const extname = path.extname(entryFilePath);
-        const compiler = this.setFileCompiler[extname];
-
-        switch (compiler) {
-            case 'js':
-                this.traverseJsCode(content, entryFilePath, deps);
-                break;
-            case 'vue':
-                this.traverseVueCode(content, entryFilePath, deps);
-                break;
-            case 'css':
-                this.traverseStyleCode(content, entryFilePath, deps, 'css');
-                break;
-            case 'less':
-                this.traverseStyleCode(content, entryFilePath, deps, 'less');
-                break;
-            case 'sass':
-                this.traverseStyleCode(content, entryFilePath, deps, 'sass');
-                break;
-            default:
-                console.log(`[get-dependency-tree] file type "${extname}" is not supported for now.`);
-                break;
-        }
-    },
-};
-
-const getDependencyTree = ({ 
-    entry = '',
-    searchRoot = '',
-    autoCompleteExtentions = null,
-    compilerSettings = null,
-    alias = null,
-    filterOut = null,
-    onEveryDepFound = null,
-    onFilteredInDepFound = null,
-    onFilteredOutDepFound = null,
-    setFileCompiler = null,
-    // babelPresets = null
-}) => {
     // check
     if (!entry) {
         throw Error('[get-dependency-tree] param "entry" is required but none was passed in.');
@@ -571,6 +590,8 @@ const getDependencyTree = ({
     utils.globalEntry = entry;
 
     autoCompleteExtentions && (utils.autoCompleteExtentions = autoCompleteExtentions);
+
+    resolveModules && (utils.resolveModules = resolveModules);
 
     onEveryDepFound && (utils.onEveryDepFound = onEveryDepFound);
     onFilteredInDepFound && (utils.onFilteredInDepFound = onFilteredInDepFound);
