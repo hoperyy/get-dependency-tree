@@ -3,7 +3,6 @@ const sass = require('sass');
 const csstree = require('css-tree');
 const babel = require('@babel/core');
 const babelTraverse = require('@babel/traverse').default;
-const vueTemplateCompiler = require('vue-template-compiler');
 
 const fs = require('fs');
 const path = require('path');
@@ -417,7 +416,7 @@ const getDependencyTree = ({
 
             for (let i = 0, len = utils.resolveModules.length; i < len; i++) {
                 const tmp = path.join(utils.resolveModules[i], 'vue-template-compiler');
-                if (fs.existsSync()) {
+                if (fs.existsSync(tmp)) {
                     finalPath = tmp;
                     break;
                 }
