@@ -108,6 +108,8 @@ require('get-dependency-tree')({
 
     +   default
 
+        The default config is for `vue` project.
+
         ```js
         babelConfig: {
             plugins: [
@@ -124,6 +126,15 @@ require('get-dependency-tree')({
     +   description
 
         When you config `babelConfig.plugins` or `babelConfig.presets`, your config will override the default `plugins` or `presets`.
+
+        If you want to analyze `react` project, you can config it like this:
+
+        ```js
+        babelConfig: {
+            plugins: ['@babel/plugin-proposal-class-properties', '@babel/plugin-transform-react-jsx'],
+            presets: ['@babel/preset-env']
+        },
+        ```
         
 +   `alias: Object | Not Required`
     +   default: `null`
