@@ -1,6 +1,3 @@
-const less = require('less');
-const sass = require('sass');
-const csstree = require('css-tree');
 const babel = require('@babel/core');
 const babelTraverse = require('@babel/traverse').default;
 
@@ -8,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const isRelative = require('is-relative');
 
-const getDependencyTree = ({ 
+const getDependencyTree = ({
     entry = '',
     searchRoot = '',
     autoCompleteExtentions = null,
@@ -435,88 +432,60 @@ const getDependencyTree = ({
             }
         },
 
-        walkCssAst(css, filePath, deps) {
-            const ast = csstree.parse(css);
-
-            // remove: '  "
-            const removeQuotationMarks = value => value.replace(/^\'/g, '').replace(/\'$/g, '').replace(/^\"/g, '').replace(/\"$/g, '');
-
-            const urls = [];
-            csstree.walk(ast, (node) => {
-                // .foo { background: url(README.md); }
-                // .bar { background-image: url(../ bar.png); }
-                // @import url('import2.css');
-                if (node.type === 'Url') {
-                    const value = removeQuotationMarks(node.value.value);
-                    urls.push(value);
-                }
-
-                // @import 'import.css';
-                // @import (css) "filename";
-                // @example '1' 2;
-                if (node.type === 'Atrule') {
-                    try {
-                        const value = removeQuotationMarks(node.prelude.children.head.data.value);
-
-                        // delete 
-                        // @import (css) "filename";
-                        // @example '1' 2;
-                        if (this.autoCompleteExtentions.indexOf(path.extname(value)) !== -1) {
-                            urls.push(value);
-                        }
-                    } catch (err) { }
-                }
-            });
-
-            urls.forEach(url => {
-                const absoluteOriginPath = this.getAbsoluteOriginPathInCss(url, filePath);
-
-                // prevent this pointer
-                if (this.checkPreventDep(absoluteOriginPath, deps)) {
-                    return;
-                }
-
-                this.ensureDep(deps, absoluteOriginPath);
-
-                // won't analyze node_modules file dep
-                if (this.nodeModulesFileMap[absoluteOriginPath]) {
-                    return;
-                }
-
-                this.run(absoluteOriginPath, deps[absoluteOriginPath]);
-            });
-        },
-
         traverseStyleCode(styleCode, filePath, deps, lang) {
-            if (lang === 'scss' || lang === 'sass') {
-                sass.render({ data: styleCode }, (err, result) => {
-                    if (err) {
-                        throw Error(`[get-dependency-tree] error in ${lang} rendering: ${JSON.stringify(err)}`);
-                    }
-
-                    const css = result.css.toString();
-                    this.walkCssAst(css, filePath, deps);
-                });
-                return;
-            }
-
-            // less.render can remove comment
-            if (lang === 'less' || lang === 'css') {
-                // @import (css) "filename"; --> @import "filename";
-                // @import url('import.css'); --> @import url('import.css');
-                // @import 'import.css'; --> @import 'import.css';
-                less.render(styleCode, (err, result) => {
-                    if (err) {
-                        throw Error(`[get-dependency-tree] error in ${lang} rendering: ${JSON.stringify(err)}`);
-                    }
-                    const css = result.css;
-
-                    this.walkCssAst(css, filePath, deps);
-                });
+            if (lang === 'scss' || lang === 'sass' || lang === 'less' || lang === 'css') {
+                this.walkStyleContent(styleCode, filePath, deps);
                 return;
             }
 
             throw Error(`[get-dependency-tree] style lang "${lang}" is not supported`);
+        },
+
+        walkStyleContent(content, filePath, deps) {
+            this.ensureDep(deps, filePath);
+
+            // analyze with reg
+            let reliedFiles = [];
+
+            {
+                const reg = /\@import\s+(\'|\")(.+?)(\'|\")/ig; // @import 'import.css' @import "import.css"
+                const arr = content.match(reg);
+
+                if (arr) {
+                    reliedFiles = reliedFiles.concat(arr.map(item => {
+                        return item.replace(/^\@import\s+(\'|\")/ig, '').replace(/(\'|\")$/, '');
+                    }));
+                }
+            }
+
+            {
+                const reg = /url\((\'|\")?.+?(\'|\")?\)/ig; // url('import.css')  url(import.css);
+                const arr = content.match(reg);
+
+                if (arr) {
+                    reliedFiles = reliedFiles.concat(arr.map(item => {
+                        return item.replace(/^url\((\'|\")?/ig, '').replace(/\)(\'|\")?$/, '');
+                    }));
+                }
+            }
+
+            const absoluteReliedFiles = reliedFiles.map(item => {
+                if (isRelative(item)) {
+                    return path.join(path.dirname(filePath), item);
+                } else {
+                    return item;
+                }
+            });
+
+            absoluteReliedFiles.forEach(item => {
+                if (fs.existsSync(item)) {
+                    this.ensureDep(deps[filePath], item);
+
+                    if (/\.(css|less|sass|scss)$/.test(item)) {
+                        this.walkStyleContent(fs.readFileSync(item, 'utf8'), item, deps[filePath]);
+                    }
+                }
+            });
         },
 
         run(entryFilePath, deps) {
@@ -625,7 +594,7 @@ const getDependencyTree = ({
             return [...new Set(arr)];
         })()
     };
-    
+
     return result;
 };
 

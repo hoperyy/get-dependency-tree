@@ -1,6 +1,6 @@
 {
   "name": "get-dependency-tree",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "get dependency tree of one file",
   "keywords": [
     "dependency",
@@ -27,10 +27,7 @@
     "@babel/plugin-transform-typescript": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
     "@babel/traverse": "^7.4.5",
-    "css-tree": "^1.0.0-alpha.29",
     "is-relative": "^1.0.0",
-    "less": "^3.9.0",
-    "sass": "^1.22.2",
     "vue-template-compiler": "^2.6.10"
   }
 }
