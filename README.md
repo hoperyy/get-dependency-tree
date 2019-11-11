@@ -104,52 +104,26 @@ require('get-dependency-tree')({
 
         It's like webpack project: `resolve: modules: []`.
 
-+   `compilerSettings: Object | Not Required`
++   `babelConfig: Object | Not Required`
 
     +   default
 
         ```js
-        {
-            'js': {
-                babelPlugins: [
-                    '@babel/plugin-syntax-dynamic-import',
-                    '@babel/plugin-transform-typescript',
-                    '@babel/plugin-proposal-class-properties'
-                ]
-            },
-            'less': {
-
-            },
-            'sass': {
-
-            },
-            'css': {
-
-            }
+        babelConfig: {
+            plugins: [
+                '@babel/plugin-syntax-dynamic-import',
+                '@babel/plugin-transform-typescript',
+                '@babel/plugin-proposal-class-properties'
+            ],
+            presets: [
+                '@babel/preset-env'
+            ]
         }
         ```
-
+    
     +   description
 
-        It's compiler settings.
-
-        +   `js`
-
-            `get-dependency-tree` uses **babel** for analyzing. You can set `babelPlugins` here by **override** the default settings.
-
-            >   Unfortunately, `babelPresets` is not allowed here because `babel.transform` won't read config `presets` somehow for now when testing.
-
-        +   `less`
-
-            `get-dependency-tree` uses **less.js render()** for analyzing.
-
-        +   `sass`
-
-            `get-dependency-tree` uses **sass render()** for analyzing.
-
-        +   `css`
-
-            `get-dependency-tree` uses **less.js render()** for analyzing.
+        When you config `babelConfig.plugins` or `babelConfig.presets`, your config will override the default `plugins` or `presets`.
         
 +   `alias: Object | Not Required`
     +   default: `null`

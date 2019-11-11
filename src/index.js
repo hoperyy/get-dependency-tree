@@ -8,13 +8,11 @@ const fs = require('fs');
 const path = require('path');
 const isRelative = require('is-relative');
 
-
-
 const getDependencyTree = ({ 
     entry = '',
     searchRoot = '',
     autoCompleteExtentions = null,
-    compilerSettings = null,
+    babelConfig = null,
     alias = null,
     filterOut = null,
     onEveryDepFound = null,
@@ -22,7 +20,6 @@ const getDependencyTree = ({
     onFilteredOutDepFound = null,
     setFileCompiler = null,
     resolveModules = [],
-    // babelPresets = null
 }) => {
     const utils = {
         // interface config
@@ -39,19 +36,9 @@ const getDependencyTree = ({
             '.sass': 'sass',
             '.css': 'css',
         },
-        compilerSettings: {
-            'js': {
-                babelPlugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript', '@babel/plugin-proposal-class-properties']
-            },
-            'less': {
-
-            },
-            'sass': {
-
-            },
-            'css': {
-
-            }
+        babelConfig: {
+            plugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript', '@babel/plugin-proposal-class-properties'],
+            presets: ['@babel/preset-env']
         },
 
         // filter
@@ -79,7 +66,6 @@ const getDependencyTree = ({
 
         // not configed
         globalDeps: {},
-        babelPresets: ['@babel/preset-env'],
 
         ensureExtname(filePath) {
             const autoCompleteExtentions = this.autoCompleteExtentions;
@@ -237,10 +223,11 @@ const getDependencyTree = ({
         traverseJsCode(jsCode, filePath, deps) {
             const { ast } = babel.transformSync(jsCode, {
                 ast: true,
-                plugins: this.compilerSettings['js'].babelPlugins,
-                presets: this.babelPresets,
+                plugins: this.babelConfig.plugins,
+                presets: this.babelConfig.presets,
                 filename: '.',
-                cwd: __dirname
+                cwd: __dirname,
+                babelrcRoots: '.',
             });
 
             babelTraverse(ast, {
@@ -596,7 +583,14 @@ const getDependencyTree = ({
     onFilteredInDepFound && (utils.onFilteredInDepFound = onFilteredInDepFound);
     onFilteredOutDepFound && (utils.onFilteredOutDepFound = onFilteredOutDepFound);
 
-    compilerSettings && (Object.assign(utils.compilerSettings, compilerSettings));
+    if (babelConfig) {
+        if (babelConfig.plugins) {
+            utils.babelConfig.plugins = babelConfig.plugins;
+        }
+        if (babelConfig.presets) {
+            utils.babelConfig.presets = babelConfig.presets;
+        }
+    }
 
     setFileCompiler && (Object.assign(utils.setFileCompiler, setFileCompiler));
 
@@ -613,8 +607,6 @@ const getDependencyTree = ({
     if (isRelative(utils.searchRoot)) {
         throw Error(`[get-dependency-tree] "searchRoot" should be an absolute path: ${searchRoot}`);
     }
-
-    // babelPresets && (utils.babelPresets = babelPresets);
 
     utils.globalDeps[entry] = {};
 
