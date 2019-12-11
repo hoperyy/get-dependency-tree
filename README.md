@@ -73,6 +73,14 @@ require('get-dependency-tree')({
 
         5 compilers are supported for now: `js / vue / less / sass / css`.
 
+        compilers as below:
+
+        +   `js` compiler will be used through `babel plugins` and `babel presets`
+        +   `vue` compiler will be used through `vue-template-compiler` and `babel`
+        +   `less/sass/css` compiler will be used through inside tool
+
+        default compilers used by files with extname as below:
+
         ```js
         {
             '.js': 'js', // file with extname `.js` will be compiled by compiler `js`
