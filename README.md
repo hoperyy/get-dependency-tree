@@ -116,7 +116,7 @@ require('get-dependency-tree')({
 
     +   default
 
-        The default config is for `vue` project.
+        The default config is as below:
 
         ```js
         babelConfig: {
