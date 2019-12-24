@@ -411,7 +411,8 @@ const getDependencyTree = ({
 
         traverseVueCode(vueCode, filePath, deps) {
             // vue-template-compier 解析出 template、script、styles 三部分
-            const compileResult = this._getVueTemplateCompiler().parseComponent(vueCode);
+            // const compileResult = this._getVueTemplateCompiler().parseComponent(vueCode);
+            const compileResult = require('vue-template-compiler').parseComponent(vueCode);
 
             // const scriptLang = compileResult.script.attrs.lang || 'js';
             if (compileResult.script && compileResult.script.content) {
@@ -442,6 +443,10 @@ const getDependencyTree = ({
         },
 
         walkStyleContent(content, filePath, deps) {
+            if (deps[filePath]) {
+                return;
+            }
+
             this.ensureDep(deps, filePath);
 
             // analyze with reg
@@ -478,9 +483,8 @@ const getDependencyTree = ({
             });
 
             absoluteReliedFiles.forEach(item => {
-                if (fs.existsSync(item)) {
-                    this.ensureDep(deps[filePath], item);
-
+                if (fs.existsSync(item) && !this.checkPreventDep(item, deps)) {
+                    this.ensureDep(deps[filePath], item, deps);
                     if (/\.(css|less|sass|scss)$/.test(item)) {
                         this.walkStyleContent(fs.readFileSync(item, 'utf8'), item, deps[filePath]);
                     }
