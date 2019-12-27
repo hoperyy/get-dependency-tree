@@ -23,14 +23,14 @@ logs:
 
 ```bash
 {
-        "xxx/test/src/index.vue": {
-            "xxx/test/src/vue-dep.js": {},
-            "xxx/test/src/import.css": {
-                "xxx/test/src/test.css": {
-                    "xxx/test/src/import.css": {}
-                }
+    "xxx/test/src/index.vue": {
+        "xxx/test/src/vue-dep.js": {},
+        "xxx/test/src/import.css": {
+            "xxx/test/src/test.css": {
+                "xxx/test/src/import.css": {}
             }
         }
+    }
 }
 
 
@@ -78,8 +78,7 @@ require('get-dependency-tree')({
         +   `js` compiler will be used through `babel plugins` and `babel presets`
         +   `vue` compiler will be used through `vue-template-compiler` and `babel`
 
-            **Attention: You need install "vue-template-compiler" !!!**
-
+            **Attention: You need install "vue-template-compiler"**
         +   `less/sass/css` compiler will be used through inside tool
 
         default compilers used by files with extname as below:
@@ -117,14 +116,8 @@ require('get-dependency-tree')({
 
         ```js
         babelConfig: {
-            plugins: [
-                '@babel/plugin-syntax-dynamic-import',
-                '@babel/plugin-transform-typescript',
-                '@babel/plugin-proposal-class-properties'
-            ],
-            presets: [
-                '@babel/preset-env'
-            ]
+            plugins: [],
+            presets: []
         }
         ```
     

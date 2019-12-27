@@ -34,8 +34,10 @@ const getDependencyTree = ({
             '.css': 'css',
         },
         babelConfig: {
-            plugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript', '@babel/plugin-proposal-class-properties'],
-            presets: ['@babel/preset-env']
+            // plugins: ['@babel/plugin-syntax-dynamic-import', '@babel/plugin-transform-typescript', '@babel/plugin-proposal-class-properties'],
+            // presets: ['@babel/preset-env']
+            plugins: [],
+            presets: [],
         },
 
         // filter
@@ -412,7 +414,15 @@ const getDependencyTree = ({
         traverseVueCode(vueCode, filePath, deps) {
             // vue-template-compier 解析出 template、script、styles 三部分
             // const compileResult = this._getVueTemplateCompiler().parseComponent(vueCode);
-            const compileResult = require('vue-template-compiler').parseComponent(vueCode);
+            let vueTemplateCompiler = null;
+
+            try {
+                vueTemplateCompiler = require('vue-template-compiler');
+            } catch(err) {
+                throw new Error('You need to install "vue-template-compiler" when using compiler: vue');
+            }
+
+            const compileResult = vueTemplateCompiler.parseComponent(vueCode);
 
             // const scriptLang = compileResult.script.attrs.lang || 'js';
             if (compileResult.script && compileResult.script.content) {
