@@ -12,7 +12,7 @@ npm i get-dependency-tree
 
 ```js
 const { tree, arr } = require('get-dependency-tree')({
-    entry: require('path').join(__dirname, 'test/src/index.vue'),
+    entry: require('path').join(__dirname, 'index.vue'),
 });
 
 console.log(JSON.stringify(tree, null, '\t'));
@@ -23,11 +23,11 @@ logs:
 
 ```bash
 {
-    "xxx/test/src/index.vue": {
-        "xxx/test/src/vue-dep.js": {},
-        "xxx/test/src/import.css": {
-            "xxx/test/src/test.css": {
-                "xxx/test/src/import.css": {}
+    "xxx/index.vue": {
+        "xxx/vue-dep.js": {},
+        "xxx/import.css": {
+            "xxx/test.css": {
+                "xxx/import.css": {}
             }
         }
     }
@@ -35,9 +35,9 @@ logs:
 
 
 [ 
-    'xxx/test/src/vue-dep.js',
-    'xxx/test/src/import.css',
-    'xxx/test/src/test.css' 
+    'xxx/vue-dep.js',
+    'xxx/import.css',
+    'xxx/test.css' 
 ]
 ```
 
@@ -58,7 +58,7 @@ require('get-dependency-tree')({
         entry file with extentions below is supported by default: `.js / .vue / .css / .less / .sass / .scss`.
 
 +   `searchRoot: String | Not Required`
-    +   default: `''`
+    +   default: current entry folder path
     +   description
 
         It should be an absolute path.
